@@ -124,6 +124,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = ' media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+AUTH_USER_MODEL = 'user_auths.User'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
@@ -139,7 +141,7 @@ JAZZMIN_UI_TWEAKS = {
     "body_small_text": False,
     "brand_small_text": True,
     "brand_colour": "navbar-indigo",
-    "accent": "accent-indigo",
+    "accent": "accent-teal",
     "navbar": "navbar-indigo navbar-dark",
     "no_navbar_border": False,
     "navbar_fixed": False,
