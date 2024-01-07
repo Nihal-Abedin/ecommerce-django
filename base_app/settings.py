@@ -48,11 +48,13 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-    'drf_yasg'
+    'drf_yasg',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,6 +64,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'base_app.urls'
+
+#CORS HEADERS
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:80",
+    "http://localhost:*",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:3000",
+]
+
 
 TEMPLATES = [
     {
