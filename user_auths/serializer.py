@@ -22,14 +22,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ["full_name", "email", "phone", "password", "password2"]
+        fields = ["full_name", "email", "phone", "password", "confirm_password"]
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["password2"]:
+        if attrs["password"] != attrs["confirm_password"]:
             raise serializers.ValidationError({"password": "Passwords doesn't match"})
         return attrs
 
