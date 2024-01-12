@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from user_auths.models import User, Profile
 from vendor.models import Vendor
 from shortuuid.django_fields import ShortUUIDField
@@ -69,6 +71,7 @@ class Gallery(models.Model):
     class Meta:
         verbose_name_plural = 'Galleries'
 
+
 class Specification(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     title = models.CharField(max_length=1000)
@@ -95,3 +98,147 @@ class Color(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+
+class Cart(models.Model):
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    qty = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    sub_total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    shipping_amount = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    service_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    tax_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    size = models.CharField(max_length=100, null=True, blank=True)
+    color = models.CharField(max_length=100, null=True, blank=True)
+    cart_id = models.CharField(max_length=1000, null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.cart_id} - {self.product.title}"
+
+
+class CartOrder(models.Model):
+    PAYMENTS_STATUS = (
+        ('paid', "Pain"),
+        ('pending', "Pending"),
+        ('processing', "Processing"),
+        ('canceled', "Canceled"),
+    )
+    ORDERS_STATUS = (
+        ('pending', "Pending"),
+        ('fulfilled', "fulfilled"),
+        ('canceled', "Canceled"),
+    )
+    vendor = models.ManyToManyField(Vendor)
+    buyer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    sub_total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    shipping_amount = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    service_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    tax_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    payment_status = models.CharField(choices=PAYMENTS_STATUS, max_length=100, default='pending')
+    order_status = models.CharField(choices=ORDERS_STATUS, max_length=100, default='pending')
+
+    # COUPONS
+    initial_total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    saved = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+
+    # BIO_DATA
+    full_names = models.CharField(max_length=100, null=True, blank=True)
+    email = models.CharField(max_length=100, null=True, blank=True)
+    mobile = models.CharField(max_length=100, null=True, blank=True)
+
+    # SHIPPING ADDRESS
+    address = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+
+    oid = ShortUUIDField(unique=True, length=10, alphabet="123456789bcdefg")
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.oid
+
+
+class CartOrderItem(models.Model):
+    ORDERS_STATUS = (
+        ('pending', "Pending"),
+        ('fulfilled', "fulfilled"),
+        ('canceled', "Canceled"),
+    )
+    order = models.ForeignKey(CartOrder, on_delete=models.CASCADE)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+
+    qty = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    sub_total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    shipping_amount = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    service_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    tax_fee = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    size = models.CharField(max_length=100, null=True, blank=True)
+    color = models.CharField(max_length=100, null=True, blank=True)
+
+    order_status = models.CharField(choices=ORDERS_STATUS, max_length=100, default='pending')
+
+    # COUPONS
+    initial_total = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+    saved = models.DecimalField(default=0.00, max_digits=12, decimal_places=2)
+
+    oid = ShortUUIDField(unique=True, length=10, alphabet="123456789bcdefg")
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.oid
+
+
+class ProductsFaq(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    email = models.EmailField(null=True, blank=True)
+
+    question = models.CharField(max_length=1000, null=False, blank=False)
+    answer = models.TextField(null=False, blank=False)
+    active = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+    class Meta:
+        verbose_name_plural = 'Products FAQs'
+
+
+class Review(models.Model):
+    RATINGS = (
+        (1, "1 star"),
+        (2, "2 star"),
+        (3, "3 star"),
+        (4, "4 star"),
+        (5, "5 star"),
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    review = models.TextField(null=True, blank=True)
+    reply = models.TextField(null=True, blank=True)
+    rating = models.IntegerField(default=None, choices=RATINGS)
+    active = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.product.title
+
+    class Meta:
+        verbose_name_plural = 'Products Reviews'
+
+    def profile(self):
+        return Profile.objects.get(use=self.user)
+
+
+# @receiver(post_save, sender=Review)
