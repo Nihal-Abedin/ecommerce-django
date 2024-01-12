@@ -57,6 +57,29 @@ class Products(models.Model):
             self.slug = slugify(self.title)
         super(Products, self).save(*args, **kwargs)
 
+    def product_rating(self):
+        product_rating = Review.objects.filter(product=self).aggregate(avg_rating=models.Avg('rating'))
+        return product_rating['avg_rating']
+
+    def ratings_count(self):
+        return Review.objects.filter(product=self).count()
+
+    def gallery(self):
+        return Gallery.objects.filter(product=self)
+
+    def specifications(self):
+        return Specification.objects.filter(product=self)
+
+    def size(self):
+        return Size.objects.filter(product=self)
+
+    def color(self):
+        return Color.objects.filter(product=self)
+
+    def save(self, *args, **kwargs):
+        self.rating = self.product_rating()
+        super(Products, self).save(*args, **kwargs)
+
 
 class Gallery(models.Model):
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
@@ -241,4 +264,43 @@ class Review(models.Model):
         return Profile.objects.get(use=self.user)
 
 
-# @receiver(post_save, sender=Review)
+@receiver(post_save, sender=Review)
+def update_product_rating(sender, instance, **kwargs):
+    if instance.product:
+        instance.product.save()
+
+
+class Wishtlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.product.title
+
+
+class Notifications(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
+    order = models.ForeignKey(CartOrder, on_delete=models.SET_NULL, blank=True, null=True)
+    order_item = models.ForeignKey(CartOrderItem, on_delete=models.SET_NULL, blank=True, null=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    seen = models.BooleanField(default=False)
+
+    def __str__(self):
+        if self.order:
+            return self.order.oId
+        else:
+            return f"Notification - {self.pk}"
+
+
+class Coupon(models.Model):
+    vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    user_by = models.ManyToManyField(User, blank=True)
+    code = models.CharField(max_length=1000)
+    discount = models.IntegerField(default=1)
+    date = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.product.title

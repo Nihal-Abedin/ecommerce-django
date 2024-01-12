@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from store.models import Category, Products, Gallery, Size, Specification, Color, CartOrder, Cart, CartOrderItem
+from store.models import Category, Products, Gallery, Size, Specification, Color, CartOrder, Cart, CartOrderItem, ProductsFaq, Review, Notifications, Coupon, Wishtlist
 
 
 class GalleryInline(admin.TabularInline):
@@ -36,3 +36,8 @@ admin.site.register(Products, ProductAdmin)
 admin.site.register(Cart)
 admin.site.register(CartOrder)
 admin.site.register(CartOrderItem)
+admin.site.register(Review)
+admin.site.register(ProductsFaq)
+admin.site.register(Notifications)
+admin.site.register(Coupon)
+admin.site.register(Wishtlist)
