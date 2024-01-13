@@ -40,7 +40,7 @@ class Products(models.Model):
     featured = models.BooleanField(default=False)
     status = models.CharField(max_length=100, choices=STATUS, default='published')
     views = models.PositiveIntegerField(default=0)
-    rating = models.PositiveIntegerField(default=0)
+    rating = models.PositiveIntegerField(default=0, null=True, blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     pid = ShortUUIDField(unique=True, length=10, alphabet="123456789bcdefg")
     slug = models.SlugField(unique=True, max_length=500)
