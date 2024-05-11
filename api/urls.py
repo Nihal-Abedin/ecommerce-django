@@ -14,4 +14,12 @@ urlpatterns = [
     path('category/', store_views.CategoryListView.as_view()),
     path('products/', store_views.ProductsListView.as_view()),
     path('products/<slug>', store_views.ProductDetailView.as_view()),
+    path('cart-view/', store_views.CartAPIView.as_view()),
+    path('cart-lists/<str:cart_id>/<int:user_id>', store_views.CartListView.as_view()),
+    path('cart-lists/<str:cart_id>/', store_views.CartListView.as_view()),
+    path('cart-detail/<str:cart_id>/', store_views.CartDetailView.as_view()),
+    path('cart-detail/<str:cart_id>/<int:user_id>', store_views.CartDetailView.as_view()),
+    path('cart-delete/<str:cart_id>/<str:item_id>/<int:user_id>', store_views.CartItemDeleteView.as_view()),
+
 ]
+

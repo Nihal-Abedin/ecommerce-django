@@ -73,7 +73,7 @@ class CartSerializer(serializers.ModelSerializer):
         super(CartSerializer, self).__init__(*args, **kwargs)
         request = self.context.get('request')
 
-        if request and request.methods == 'POST':
+        if request and request.method == 'POST':
             self.Meta.depth = 0
         else:
             self.Meta.depth = 3
